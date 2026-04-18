@@ -1,29 +1,25 @@
 package com.proyecto.pdm115.alquilermaquinaria
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.TextView
+import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
-class HomeActivity : AppCompatActivity() {
+class activity_detalle_maquinaria : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_home)
+        setContentView(R.layout.activity_detalle_maquinaria)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val btn = findViewById<TextView>(R.id.tv_tag_oferta)
-
-        btn.setOnClickListener {
-            // Crea la "intención" de ir de esta pantalla a la de Registro
-            val intent = Intent(this, activity_detalle_maquinaria::class.java)
-            startActivity(intent)
+        val btnBack = findViewById<ImageButton>(R.id.btn_back)
+        btnBack.setOnClickListener {
+            finish() // Esto cierra la pantalla actual y vuelve a la anterior
         }
     }
 }

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity_detalle_maquinaria"
+    android:background="#F8F9FF">
+    <ImageView
+        android:id="@+id/img_maquinaria_grande"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ic_launcher_background"/>
+    <ImageButton
+        android:id="@+id/btn_back"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_arrow_back"
+        android:background="@drawable/bg_button_back"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_margin="16dp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btn_share"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/ic_share"
+            android:tint="@color/black"
+            android:background="@drawable/bg_button_back"/>
+
+        <ImageButton
+            android:id="@+id/btn_favorite"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_fav"
+            android:tint="@color/black"
+            android:background="@drawable/bg_button_back"/>
+
+    </LinearLayout>/>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="-30dp"
+        android:background="@drawable/bg_rounded_top"
+        app:layout_constraintTop_toBottomOf="@id/img_maquinaria_grande"
+        app:layout_constraintBottom_toTopOf="@id/layout_bottom_action">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/tv_detalle_nombre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Excavadora CAT 320 GC"
+                android:textColor="#0B1C30"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/btn_gradient"
+                android:padding="16dp"
+                android:orientation="horizontal">
+                <TextView android:id="@+id/tv_precio_diario" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" tools:text="$2,500 /día" android:textColor="#FFFFFF" android:textStyle="bold"/>
+                <TextView android:id="@+id/tv_precio_hora" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" tools:text="$320 /hr" android:textColor="#FFFFFF" android:textStyle="bold"/>
+            </LinearLayout>
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Descripción"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tv_detalle_descripcion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="La excavadora CAT 320 GC equilibra la productividad..." />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Disponibilidad Semanal"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/container_fechas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+            </LinearLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Reseñas"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#0B1C30" />
+
+                <TextView
+                    android:id="@+id/tv_ver_todas_resenas"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="Ver todas"
+                    android:textColor="#F97316" />
+            </RelativeLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_resenas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_resena" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+
+    <LinearLayout
+        android:id="@+id/layout_bottom_action"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <TextView
+            android:id="@+id/tv_total_estimado"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="$2,500 /día"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_reservar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reservar ahora"
+            android:background="@drawable/btn_gradient"
+            app:backgroundTint="@null"/>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
