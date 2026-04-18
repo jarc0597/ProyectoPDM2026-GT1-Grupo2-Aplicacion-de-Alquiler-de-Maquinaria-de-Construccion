@@ -26,5 +26,12 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
         }
+        val btnIngreso = findViewById<TextView>(R.id.btn_login)
+
+        btnIngreso.setOnClickListener {
+            // Crea la "intención" de ir de esta pantalla a la de Registro
+            val intent = Intent(this, HomeActivity::class.java)
+            startActivity(intent)
+        }
     }
 }
