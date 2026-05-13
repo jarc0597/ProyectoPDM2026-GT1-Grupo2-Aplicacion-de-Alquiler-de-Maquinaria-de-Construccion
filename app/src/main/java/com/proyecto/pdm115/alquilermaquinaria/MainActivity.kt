@@ -1,6 +1,7 @@
 package com.proyecto.pdm115.alquilermaquinaria
 
 import android.content.Intent
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
@@ -10,9 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.proyecto.pdm115.alquilermaquinaria.db.DBHelper
-import android.database.sqlite.SQLiteDatabase
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var dbHelper: DBHelper
     private lateinit var dbLocal: SQLiteDatabase
 
@@ -48,15 +49,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun inicializarBaseDatos() {
         try {
-            // Mantiene la conexión SQLite abierta mientras la pantalla esté activa
+            // Inicializa DBHelper antes de usarlo
             dbHelper = DBHelper(this)
             dbLocal = dbHelper.writableDatabase
 
-            // Verifica las tablas creadas en la base
+            // Verifica las tablas creadas
             val resumen = dbHelper.obtenerResumenBaseDatos()
-
-            Toast.makeText(this, "Base SQLite abierta correctamente", Toast.LENGTH_LONG).show()
             Log.d("BD_SQLITE", resumen)
+
+            // Prueba temporal para verificar lectura de maquinaria
+            val maquinarias = dbHelper.obtenerMaquinarias()
+            Log.d("BD_SQLITE", "Maquinarias encontradas: ${maquinarias.size}")
+
+            if (maquinarias.isNotEmpty()) {
+                Log.d("BD_SQLITE", "Primera maquinaria: ${maquinarias[0].nombreEquipo}")
+            }
+
+            Toast.makeText(
+                this,
+                "Base SQLite abierta correctamente",
+                Toast.LENGTH_LONG
+            ).show()
 
         } catch (e: Exception) {
             Toast.makeText(
@@ -68,10 +81,11 @@ class MainActivity : AppCompatActivity() {
             Log.e("BD_SQLITE", "Error al abrir la base de datos", e)
         }
     }
+
     override fun onDestroy() {
         super.onDestroy()
 
-        // Cierra la base solo cuando se destruye la pantalla
+        // Cierra la base al destruir la pantalla
         if (::dbLocal.isInitialized && dbLocal.isOpen) {
             dbLocal.close()
         }

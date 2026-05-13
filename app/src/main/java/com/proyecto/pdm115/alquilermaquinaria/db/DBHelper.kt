@@ -3,6 +3,7 @@ package com.proyecto.pdm115.alquilermaquinaria.db
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.proyecto.pdm115.alquilermaquinaria.models.Maquinaria
 
 class DBHelper(context: Context) : SQLiteOpenHelper(
     context.applicationContext,
@@ -133,5 +134,67 @@ class DBHelper(context: Context) : SQLiteOpenHelper(
         } else {
             "Tablas encontradas (${tablas.size}): ${tablas.joinToString(", ")}"
         }
+    }
+    fun obtenerMaquinarias(): List<Maquinaria> {
+        val listaMaquinaria = mutableListOf<Maquinaria>()
+        val db = readableDatabase
+
+        // Consulta maquinaria junto con su categoria y estado
+        val cursor = db.rawQuery(
+            """
+        SELECT 
+            m.id_maquinaria,
+            m.codigo_interno,
+            m.nombre_equipo,
+            m.marca,
+            m.modelo,
+            m.capacidad,
+            m.descripcion,
+            m.costo_hora,
+            m.costo_dia,
+            m.stock,
+            m.imagen_url,
+            m.id_categoria,
+            c.nombre_categoria,
+            m.id_estado,
+            e.nombre_estado,
+            m.activo
+        FROM maquinaria m
+        INNER JOIN categorias_maquinaria c 
+            ON c.id_categoria = m.id_categoria
+        INNER JOIN estados_maquinaria e 
+            ON e.id_estado = m.id_estado
+        WHERE m.activo = 1
+        ORDER BY m.nombre_equipo ASC
+        """.trimIndent(),
+            null
+        )
+
+        cursor.use {
+            while (it.moveToNext()) {
+                val maquinaria = Maquinaria(
+                    idMaquinaria = it.getInt(0),
+                    codigoInterno = it.getString(1),
+                    nombreEquipo = it.getString(2),
+                    marca = it.getString(3),
+                    modelo = it.getString(4),
+                    capacidad = it.getString(5),
+                    descripcion = it.getString(6),
+                    costoHora = it.getDouble(7),
+                    costoDia = it.getDouble(8),
+                    stock = it.getInt(9),
+                    imagenUrl = it.getString(10),
+                    idCategoria = it.getInt(11),
+                    nombreCategoria = it.getString(12),
+                    idEstado = it.getInt(13),
+                    nombreEstado = it.getString(14),
+                    activo = it.getInt(15)
+                )
+
+                listaMaquinaria.add(maquinaria)
+            }
+        }
+
+        return listaMaquinaria
     }
 }

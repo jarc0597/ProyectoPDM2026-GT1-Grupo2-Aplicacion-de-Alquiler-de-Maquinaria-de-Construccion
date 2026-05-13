@@ -282,3 +282,82 @@ BEGIN
            total_estimado = COALESCE((SELECT ROUND(SUM(subtotal_detalle) * 1.13, 2) FROM reserva_detalle WHERE id_reserva = OLD.id_reserva), 0)
      WHERE id_reserva = OLD.id_reserva;
 END;
+-- =========================================================
+-- DATOS INICIALES PARA PRUEBAS
+-- =========================================================
+
+INSERT INTO roles (nombre_rol, descripcion) VALUES
+('Administrador', 'Usuario encargado de gestionar maquinaria, reservas y catalogos'),
+('Cliente', 'Usuario que puede consultar maquinaria y realizar reservas');
+
+INSERT INTO opciones_menu (codigo_opcion, nombre_opcion, descripcion) VALUES
+('CAT001', 'Catalogo de maquinaria', 'Permite consultar maquinaria disponible'),
+('RES001', 'Reservas', 'Permite registrar y consultar reservas'),
+('ADM001', 'Administracion de maquinaria', 'Permite gestionar equipos, precios y disponibilidad'),
+('HIS001', 'Historial de alquileres', 'Permite consultar alquileres realizados');
+
+INSERT INTO roles_opciones_menu (id_rol, id_opcion) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(2, 1),
+(2, 2),
+(2, 4);
+
+INSERT INTO usuarios (
+    nombres,
+    apellidos,
+    correo,
+    telefono,
+    clave_hash,
+    activo,
+    id_rol
+) VALUES
+('Admin', 'Sistema', 'admin@maquinaria.com', '70000000', '1234', 1, 1);
+
+INSERT INTO clientes (
+    nombres,
+    apellidos,
+    dui,
+    nit,
+    telefono,
+    correo,
+    direccion,
+    activo
+) VALUES
+('Carlos', 'Montano', '00000000-0', '0000-000000-000-0', '70000001', 'cliente@maquinaria.com', 'San Vicente', 1);
+
+INSERT INTO categorias_maquinaria (nombre_categoria, descripcion) VALUES
+('Excavacion', 'Maquinaria utilizada para excavaciones y movimiento de tierra'),
+('Compactacion', 'Equipos utilizados para compactar suelo o superficies'),
+('Concreto', 'Equipos para preparacion y manejo de concreto'),
+('Energia', 'Equipos generadores de energia electrica'),
+('Altura', 'Equipos utilizados para trabajos en altura');
+
+INSERT INTO estados_maquinaria (nombre_estado, descripcion) VALUES
+('Disponible', 'Equipo disponible para alquiler'),
+('Alquilada', 'Equipo actualmente alquilado'),
+('Mantenimiento', 'Equipo en proceso de mantenimiento'),
+('Fuera de servicio', 'Equipo no disponible para uso');
+
+INSERT INTO maquinaria (
+    codigo_interno,
+    nombre_equipo,
+    marca,
+    modelo,
+    capacidad,
+    descripcion,
+    costo_hora,
+    costo_dia,
+    stock,
+    imagen_url,
+    id_categoria,
+    id_estado,
+    activo
+) VALUES
+('EXC-001', 'Retroexcavadora', 'CAT', '416F2', '1 m3', 'Equipo para excavacion y carga de material', 25.00, 175.00, 2, '', 1, 1, 1),
+('COM-001', 'Compactadora', 'Wacker Neuson', 'VP1550', '15 kN', 'Equipo para compactacion de suelo', 8.00, 45.00, 3, '', 2, 1, 1),
+('CON-001', 'Mezcladora de concreto', 'Honda', 'GX160', '1 saco', 'Equipo para preparacion de mezcla de concreto en obra', 6.00, 35.00, 4, '', 3, 1, 1),
+('ENE-001', 'Generador electrico', 'Honda', 'EU2200i', '2200 W', 'Equipo para suministro de energia electrica en obra', 10.00, 60.00, 2, '', 4, 1, 1),
+('ALT-001', 'Andamio metalico', 'Layher', 'Universal', '2 metros', 'Estructura temporal para trabajos en altura', 5.00, 25.00, 5, '', 5, 1, 1);
