@@ -5,165 +5,133 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
 class DBHelper(context: Context) : SQLiteOpenHelper(
-    context,
+    context.applicationContext,
     DATABASE_NAME,
     null,
     DATABASE_VERSION
 ) {
 
+    private val appContext: Context = context.applicationContext
+
     companion object {
         private const val DATABASE_NAME = "alquiler_maquinaria.db"
-        private const val DATABASE_VERSION = 1
+
+        // Cambiar versión obliga a reconstruir la base en el emulador
+        private const val DATABASE_VERSION = 7
+
+        private const val SCRIPT_SCHEMA = "sql/02_sqlite_schema.sql"
+    }
+
+    override fun onConfigure(db: SQLiteDatabase) {
+        super.onConfigure(db)
+
+        // Activa llaves foráneas en SQLite
+        db.setForeignKeyConstraintsEnabled(true)
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-
-        db.execSQL(
-            """
-            CREATE TABLE roles (
-                id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre_rol TEXT NOT NULL,
-                descripcion TEXT
-            )
-            """.trimIndent()
-        )
-
-        db.execSQL(
-            """
-            CREATE TABLE opciones_menu (
-                id_opcion INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre_opcion TEXT NOT NULL,
-                descripcion TEXT
-            )
-            """.trimIndent()
-        )
-
-        db.execSQL(
-            """
-            CREATE TABLE roles_opciones_menu (
-                id_rol INTEGER NOT NULL,
-                id_opcion INTEGER NOT NULL,
-                PRIMARY KEY (id_rol, id_opcion),
-                FOREIGN KEY (id_rol) REFERENCES roles(id_rol),
-                FOREIGN KEY (id_opcion) REFERENCES opciones_menu(id_opcion)
-            )
-            """.trimIndent()
-        )
-
-        db.execSQL(
-            """
-            CREATE TABLE usuarios (
-                id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre TEXT NOT NULL,
-                correo TEXT NOT NULL UNIQUE,
-                telefono TEXT,
-                contrasena TEXT NOT NULL,
-                id_rol INTEGER NOT NULL,
-                FOREIGN KEY (id_rol) REFERENCES roles(id_rol)
-            )
-            """.trimIndent()
-        )
-
-        db.execSQL(
-            """
-            CREATE TABLE categorias (
-                id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre_categoria TEXT NOT NULL,
-                descripcion TEXT
-            )
-            """.trimIndent()
-        )
-
-        db.execSQL(
-            """
-            CREATE TABLE maquinaria (
-                id_maquinaria INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre TEXT NOT NULL,
-                marca TEXT NOT NULL,
-                modelo TEXT NOT NULL,
-                capacidad TEXT,
-                descripcion TEXT,
-                costo_por_dia REAL NOT NULL,
-                estado TEXT NOT NULL,
-                imagen TEXT,
-                id_categoria INTEGER NOT NULL,
-                FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
-            )
-            """.trimIndent()
-        )
-
-        db.execSQL(
-            """
-            CREATE TABLE reservas (
-                id_reserva INTEGER PRIMARY KEY AUTOINCREMENT,
-                id_usuario INTEGER NOT NULL,
-                id_maquinaria INTEGER NOT NULL,
-                fecha_inicio TEXT NOT NULL,
-                fecha_fin TEXT NOT NULL,
-                lugar_uso TEXT NOT NULL,
-                costo_total REAL NOT NULL,
-                estado_reserva TEXT NOT NULL,
-                FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
-                FOREIGN KEY (id_maquinaria) REFERENCES maquinaria(id_maquinaria)
-            )
-            """.trimIndent()
-        )
-
-        insertarDatosIniciales(db)
+        ejecutarScriptDesdeAssets(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS reservas")
-        db.execSQL("DROP TABLE IF EXISTS maquinaria")
-        db.execSQL("DROP TABLE IF EXISTS categorias")
-        db.execSQL("DROP TABLE IF EXISTS usuarios")
-        db.execSQL("DROP TABLE IF EXISTS roles_opciones_menu")
-        db.execSQL("DROP TABLE IF EXISTS opciones_menu")
-        db.execSQL("DROP TABLE IF EXISTS roles")
-
-        onCreate(db)
+        ejecutarScriptDesdeAssets(db)
     }
 
-    private fun insertarDatosIniciales(db: SQLiteDatabase) {
-        db.execSQL("INSERT INTO roles(nombre_rol, descripcion) VALUES ('Administrador', 'Gestiona maquinaria, usuarios y reservas')")
-        db.execSQL("INSERT INTO roles(nombre_rol, descripcion) VALUES ('Cliente', 'Puede consultar catalogo y realizar reservas')")
+    private fun ejecutarScriptDesdeAssets(db: SQLiteDatabase) {
+        val scriptSql = appContext.assets.open(SCRIPT_SCHEMA)
+            .bufferedReader()
+            .use { it.readText() }
 
-        db.execSQL("INSERT INTO opciones_menu(nombre_opcion, descripcion) VALUES ('Gestionar maquinaria', 'Permite agregar, modificar y eliminar maquinaria')")
-        db.execSQL("INSERT INTO opciones_menu(nombre_opcion, descripcion) VALUES ('Ver catalogo', 'Permite consultar maquinaria disponible')")
-        db.execSQL("INSERT INTO opciones_menu(nombre_opcion, descripcion) VALUES ('Realizar reserva', 'Permite reservar maquinaria')")
-        db.execSQL("INSERT INTO opciones_menu(nombre_opcion, descripcion) VALUES ('Historial de alquileres', 'Permite consultar reservas anteriores')")
+        val sentencias = dividirScriptSql(scriptSql)
 
-        db.execSQL("INSERT INTO roles_opciones_menu(id_rol, id_opcion) VALUES (1, 1)")
-        db.execSQL("INSERT INTO roles_opciones_menu(id_rol, id_opcion) VALUES (1, 2)")
-        db.execSQL("INSERT INTO roles_opciones_menu(id_rol, id_opcion) VALUES (1, 3)")
-        db.execSQL("INSERT INTO roles_opciones_menu(id_rol, id_opcion) VALUES (1, 4)")
-        db.execSQL("INSERT INTO roles_opciones_menu(id_rol, id_opcion) VALUES (2, 2)")
-        db.execSQL("INSERT INTO roles_opciones_menu(id_rol, id_opcion) VALUES (2, 3)")
-        db.execSQL("INSERT INTO roles_opciones_menu(id_rol, id_opcion) VALUES (2, 4)")
+        db.beginTransaction()
+        try {
+            for (sentencia in sentencias) {
+                val sql = sentencia.trim()
 
-        db.execSQL("INSERT INTO categorias(nombre_categoria, descripcion) VALUES ('Excavacion', 'Maquinaria para excavaciones y movimiento de tierra')")
-        db.execSQL("INSERT INTO categorias(nombre_categoria, descripcion) VALUES ('Compactacion', 'Equipos para compactar suelo y superficies')")
-        db.execSQL("INSERT INTO categorias(nombre_categoria, descripcion) VALUES ('Concreto', 'Equipos para preparacion y manejo de concreto')")
+                // PRAGMA se maneja desde onConfigure
+                if (sql.isNotEmpty() && !sql.startsWith("PRAGMA", ignoreCase = true)) {
+                    db.execSQL(sql)
+                }
+            }
 
-        db.execSQL(
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    private fun dividirScriptSql(script: String): List<String> {
+        val sentencias = mutableListOf<String>()
+        val acumulador = StringBuilder()
+        var dentroTrigger = false
+
+        for (lineaOriginal in script.lines()) {
+            val lineaLimpia = lineaOriginal.trim()
+
+            // Ignora comentarios y líneas vacías
+            if (lineaLimpia.isEmpty() || lineaLimpia.startsWith("--")) {
+                continue
+            }
+
+            // Detecta inicio de trigger
+            if (lineaLimpia.startsWith("CREATE TRIGGER", ignoreCase = true)) {
+                dentroTrigger = true
+            }
+
+            acumulador.appendLine(lineaOriginal)
+
+            if (dentroTrigger) {
+                // El END final del trigger viene sin espacios al inicio
+                if (lineaOriginal.startsWith("END;", ignoreCase = true)) {
+                    sentencias.add(acumulador.toString().trim())
+                    acumulador.clear()
+                    dentroTrigger = false
+                }
+            } else {
+                // Sentencias normales: CREATE TABLE, INDEX, DROP, INSERT, etc.
+                if (lineaLimpia.endsWith(";")) {
+                    sentencias.add(acumulador.toString().trim())
+                    acumulador.clear()
+                }
+            }
+        }
+
+        val restante = acumulador.toString().trim()
+        if (restante.isNotEmpty()) {
+            sentencias.add(restante)
+        }
+
+        return sentencias
+    }
+
+    fun obtenerResumenBaseDatos(): String {
+        val db = readableDatabase
+        val tablas = mutableListOf<String>()
+
+        // Lista tablas creadas por el script
+        val cursor = db.rawQuery(
             """
-            INSERT INTO maquinaria(nombre, marca, modelo, capacidad, descripcion, costo_por_dia, estado, imagen, id_categoria)
-            VALUES ('Retroexcavadora', 'CAT', '416F2', '1 m3', 'Equipo para excavacion y carga de material', 175.00, 'Disponible', '', 1)
-            """.trimIndent()
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table'
+            AND name NOT LIKE 'sqlite_%'
+            AND name NOT LIKE 'android_%'
+            ORDER BY name
+            """.trimIndent(),
+            null
         )
 
-        db.execSQL(
-            """
-            INSERT INTO maquinaria(nombre, marca, modelo, capacidad, descripcion, costo_por_dia, estado, imagen, id_categoria)
-            VALUES ('Compactadora', 'Wacker Neuson', 'VP1550', '15 kN', 'Equipo para compactacion de suelo', 45.00, 'Disponible', '', 2)
-            """.trimIndent()
-        )
+        cursor.use {
+            while (it.moveToNext()) {
+                tablas.add(it.getString(0))
+            }
+        }
 
-        db.execSQL(
-            """
-            INSERT INTO usuarios(nombre, correo, telefono, contrasena, id_rol)
-            VALUES ('Administrador', 'admin@maquinaria.com', '70000000', '1234', 1)
-            """.trimIndent()
-        )
+        return if (tablas.isEmpty()) {
+            "Base creada, pero no se encontraron tablas."
+        } else {
+            "Tablas encontradas (${tablas.size}): ${tablas.joinToString(", ")}"
+        }
     }
 }
