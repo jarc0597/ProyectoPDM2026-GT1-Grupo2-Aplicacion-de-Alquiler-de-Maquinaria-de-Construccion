@@ -7,8 +7,17 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.util.Log
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.proyecto.pdm115.alquilermaquinaria.adapters.MaquinariaAdapter
+import com.proyecto.pdm115.alquilermaquinaria.db.DBHelper
+
 
 class HomeActivity : AppCompatActivity() {
+    private lateinit var dbHelper: DBHelper
+    private lateinit var rvMaquinaria: RecyclerView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -18,6 +27,12 @@ class HomeActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        // Inicializa la conexión con SQLite
+        dbHelper = DBHelper(this)
+
+        // Carga las maquinarias en pantalla
+        cargarCatalogoMaquinaria()
+
         val btn = findViewById<TextView>(R.id.tv_tag_oferta)
 
         btn.setOnClickListener {
@@ -25,5 +40,25 @@ class HomeActivity : AppCompatActivity() {
             val intent = Intent(this, activity_detalle_maquinaria::class.java)
             startActivity(intent)
         }
+    }
+    private fun cargarCatalogoMaquinaria() {
+        // Busca el RecyclerView en activity_home.xml
+        rvMaquinaria = findViewById(R.id.rv_maquinaria_disp)
+
+        // Obtiene las maquinarias guardadas en SQLite
+        val listaMaquinaria = dbHelper.obtenerMaquinarias()
+
+        // Mensaje para confirmar en Logcat cuántas cargó
+        Log.d("BD_SQLITE", "HomeActivity maquinaria cargada: ${listaMaquinaria.size}")
+
+        // Muestra las tarjetas en forma horizontal
+        rvMaquinaria.layoutManager = LinearLayoutManager(
+            this,
+            LinearLayoutManager.HORIZONTAL,
+            false
+        )
+
+        // Conecta la lista con el adaptador visual
+        rvMaquinaria.adapter = MaquinariaAdapter(listaMaquinaria)
     }
 }
