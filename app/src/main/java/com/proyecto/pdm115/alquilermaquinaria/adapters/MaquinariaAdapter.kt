@@ -12,6 +12,8 @@ import com.proyecto.pdm115.alquilermaquinaria.R
 import com.proyecto.pdm115.alquilermaquinaria.activity_detalle_maquinaria
 import com.proyecto.pdm115.alquilermaquinaria.models.Maquinaria
 
+
+
 class MaquinariaAdapter(
     private val listaMaquinaria: List<Maquinaria>
 ) : RecyclerView.Adapter<MaquinariaAdapter.MaquinariaViewHolder>() {
@@ -48,17 +50,20 @@ class MaquinariaAdapter(
         // Imagen temporal mientras no tengamos imagenes reales por equipo
         holder.imgMaquina.setImageResource(R.drawable.backgrounf_hero)
 
-        // Al tocar la tarjeta, abre el detalle de maquinaria
-        holder.itemView.setOnClickListener {
+        // Abre el detalle enviando el ID de la maquinaria seleccionada
+        val abrirDetalle = View.OnClickListener {
             val intent = Intent(holder.itemView.context, activity_detalle_maquinaria::class.java)
+
+            // Enviamos el ID para que la pantalla detalle consulte SQLite
+            intent.putExtra("id_maquinaria", maquinaria.idMaquinaria)
+
             holder.itemView.context.startActivity(intent)
         }
 
-        // Boton de agregar o reservar
-        holder.btnAdd.setOnClickListener {
-            val intent = Intent(holder.itemView.context, activity_detalle_maquinaria::class.java)
-            holder.itemView.context.startActivity(intent)
-        }
+        holder.itemView.setOnClickListener(abrirDetalle)
+        holder.btnAdd.setOnClickListener(abrirDetalle)
+
+
     }
 
     override fun getItemCount(): Int {

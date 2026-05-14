@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.proyecto.pdm115.alquilermaquinaria.models.Maquinaria
 
+
 class DBHelper(context: Context) : SQLiteOpenHelper(
     context.applicationContext,
     DATABASE_NAME,
@@ -196,5 +197,64 @@ class DBHelper(context: Context) : SQLiteOpenHelper(
         }
 
         return listaMaquinaria
+    }
+    fun obtenerMaquinariaPorId(idMaquinaria: Int): Maquinaria? {
+        val db = readableDatabase
+
+        // Consulta una sola maquinaria usando su ID
+        val cursor = db.rawQuery(
+            """
+        SELECT 
+            m.id_maquinaria,
+            m.codigo_interno,
+            m.nombre_equipo,
+            m.marca,
+            m.modelo,
+            m.capacidad,
+            m.descripcion,
+            m.costo_hora,
+            m.costo_dia,
+            m.stock,
+            m.imagen_url,
+            m.id_categoria,
+            c.nombre_categoria,
+            m.id_estado,
+            e.nombre_estado,
+            m.activo
+        FROM maquinaria m
+        INNER JOIN categorias_maquinaria c 
+            ON c.id_categoria = m.id_categoria
+        INNER JOIN estados_maquinaria e 
+            ON e.id_estado = m.id_estado
+        WHERE m.id_maquinaria = ?
+        LIMIT 1
+        """.trimIndent(),
+            arrayOf(idMaquinaria.toString())
+        )
+
+        cursor.use {
+            if (it.moveToFirst()) {
+                return Maquinaria(
+                    idMaquinaria = it.getInt(0),
+                    codigoInterno = it.getString(1),
+                    nombreEquipo = it.getString(2),
+                    marca = it.getString(3),
+                    modelo = it.getString(4),
+                    capacidad = it.getString(5),
+                    descripcion = it.getString(6),
+                    costoHora = it.getDouble(7),
+                    costoDia = it.getDouble(8),
+                    stock = it.getInt(9),
+                    imagenUrl = it.getString(10),
+                    idCategoria = it.getInt(11),
+                    nombreCategoria = it.getString(12),
+                    idEstado = it.getInt(13),
+                    nombreEstado = it.getString(14),
+                    activo = it.getInt(15)
+                )
+            }
+        }
+
+        return null
     }
 }
