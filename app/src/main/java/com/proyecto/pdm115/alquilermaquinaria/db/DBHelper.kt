@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.proyecto.pdm115.alquilermaquinaria.models.Maquinaria
+import android.content.ContentValues
 
 
 class DBHelper(context: Context) : SQLiteOpenHelper(
@@ -230,6 +231,161 @@ class DBHelper(context: Context) : SQLiteOpenHelper(
         LIMIT 1
         """.trimIndent(),
             arrayOf(idMaquinaria.toString())
+        )
+
+        cursor.use {
+            if (it.moveToFirst()) {
+                return Maquinaria(
+                    idMaquinaria = it.getInt(0),
+                    codigoInterno = it.getString(1),
+                    nombreEquipo = it.getString(2),
+                    marca = it.getString(3),
+                    modelo = it.getString(4),
+                    capacidad = it.getString(5),
+                    descripcion = it.getString(6),
+                    costoHora = it.getDouble(7),
+                    costoDia = it.getDouble(8),
+                    stock = it.getInt(9),
+                    imagenUrl = it.getString(10),
+                    idCategoria = it.getInt(11),
+                    nombreCategoria = it.getString(12),
+                    idEstado = it.getInt(13),
+                    nombreEstado = it.getString(14),
+                    activo = it.getInt(15)
+                )
+            }
+        }
+
+        return null
+    }
+
+    fun insertarMaquinaria(
+        codigoInterno: String,
+        nombreEquipo: String,
+        marca: String,
+        modelo: String,
+        capacidad: String?,
+        descripcion: String,
+        costoHora: Double,
+        costoDia: Double,
+        stock: Int,
+        imagenUrl: String?,
+        idCategoria: Int,
+        idEstado: Int
+    ): Long {
+        val db = writableDatabase
+
+        // ContentValues permite preparar los datos antes de insertarlos en SQLite
+        val valores = ContentValues().apply {
+            put("codigo_interno", codigoInterno)
+            put("nombre_equipo", nombreEquipo)
+            put("marca", marca)
+            put("modelo", modelo)
+            put("capacidad", capacidad)
+            put("descripcion", descripcion)
+            put("costo_hora", costoHora)
+            put("costo_dia", costoDia)
+            put("stock", stock)
+            put("imagen_url", imagenUrl)
+            put("id_categoria", idCategoria)
+            put("id_estado", idEstado)
+            put("activo", 1)
+        }
+
+        // Retorna el ID del nuevo registro o -1 si falló
+        return db.insert("maquinaria", null, valores)
+    }
+
+    fun actualizarMaquinaria(
+        idMaquinaria: Int,
+        codigoInterno: String,
+        nombreEquipo: String,
+        marca: String,
+        modelo: String,
+        capacidad: String?,
+        descripcion: String,
+        costoHora: Double,
+        costoDia: Double,
+        stock: Int,
+        imagenUrl: String?,
+        idCategoria: Int,
+        idEstado: Int
+    ): Int {
+        val db = writableDatabase
+
+        // Prepara los nuevos valores para actualizar la maquinaria
+        val valores = ContentValues().apply {
+            put("codigo_interno", codigoInterno)
+            put("nombre_equipo", nombreEquipo)
+            put("marca", marca)
+            put("modelo", modelo)
+            put("capacidad", capacidad)
+            put("descripcion", descripcion)
+            put("costo_hora", costoHora)
+            put("costo_dia", costoDia)
+            put("stock", stock)
+            put("imagen_url", imagenUrl)
+            put("id_categoria", idCategoria)
+            put("id_estado", idEstado)
+        }
+
+        // Retorna cuántos registros fueron actualizados
+        return db.update(
+            "maquinaria",
+            valores,
+            "id_maquinaria = ?",
+            arrayOf(idMaquinaria.toString())
+        )
+    }
+    fun eliminarMaquinaria(idMaquinaria: Int): Int {
+        val db = writableDatabase
+
+        // Eliminación lógica: no borra el registro, solo lo marca como inactivo
+        val valores = ContentValues().apply {
+            put("activo", 0)
+        }
+
+        // Retorna cuántos registros fueron marcados como inactivos
+        return db.update(
+            "maquinaria",
+            valores,
+            "id_maquinaria = ?",
+            arrayOf(idMaquinaria.toString())
+        )
+    }
+
+    fun obtenerMaquinariaPorCodigo(codigoInterno: String): Maquinaria? {
+        val db = readableDatabase
+
+        // Busca una maquinaria por su código interno
+        val cursor = db.rawQuery(
+            """
+        SELECT 
+            m.id_maquinaria,
+            m.codigo_interno,
+            m.nombre_equipo,
+            m.marca,
+            m.modelo,
+            m.capacidad,
+            m.descripcion,
+            m.costo_hora,
+            m.costo_dia,
+            m.stock,
+            m.imagen_url,
+            m.id_categoria,
+            c.nombre_categoria,
+            m.id_estado,
+            e.nombre_estado,
+            m.activo
+        FROM maquinaria m
+        INNER JOIN categorias_maquinaria c 
+            ON c.id_categoria = m.id_categoria
+        INNER JOIN estados_maquinaria e 
+            ON e.id_estado = m.id_estado
+        WHERE m.codigo_interno = ?
+        LIMIT 1
+        """.trimIndent(),
+            arrayOf(codigoInterno)
         )
 
         cursor.use {
