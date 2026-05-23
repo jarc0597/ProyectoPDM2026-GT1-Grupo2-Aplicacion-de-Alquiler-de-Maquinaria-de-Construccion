@@ -88,7 +88,7 @@ class ReservaMaquinariaActivity : AppCompatActivity() {
         btnVerHistorial.setOnClickListener {
             val intent = Intent(this, HistorialReservasActivity::class.java)
             startActivity(intent)
-        }ges
+        }
 
         btnVolverReserva.setOnClickListener {
             finish()
