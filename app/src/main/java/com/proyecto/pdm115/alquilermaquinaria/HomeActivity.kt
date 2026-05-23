@@ -40,7 +40,8 @@ class HomeActivity : AppCompatActivity() {
         val btn = findViewById<TextView>(R.id.tv_tag_oferta)
 
         btn.setOnClickListener {
-            val intent = Intent(this, activity_detalle_maquinaria::class.java)
+            // Abre la pantalla que consume la API PHP + MySQL con Retrofit
+            val intent = Intent(this, MaquinariaRemotaActivity::class.java)
             startActivity(intent)
         }
 
