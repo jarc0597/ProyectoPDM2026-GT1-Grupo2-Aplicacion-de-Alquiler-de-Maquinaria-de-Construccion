@@ -12,28 +12,41 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AlquilerMaquinaria">
 
+        <activity
+            android:name=".HistorialReservasActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ReservaMaquinariaActivity"
+            android:exported="false" />
 
         <activity
             android:name=".GestionMaquinariaActivity"
             android:exported="false" />
+
         <activity
             android:name=".activity_detalle_maquinaria"
             android:exported="false" />
+
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
+
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
     </application>
 
 </manifest>

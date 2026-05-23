@@ -7,6 +7,7 @@ import com.proyecto.pdm115.alquilermaquinaria.models.Maquinaria
 import android.content.ContentValues
 
 
+
 class DBHelper(context: Context) : SQLiteOpenHelper(
     context.applicationContext,
     DATABASE_NAME,
@@ -413,4 +414,166 @@ class DBHelper(context: Context) : SQLiteOpenHelper(
 
         return null
     }
+
+
+    fun guardarReservaMaquinaria(
+        idMaquinaria: Int,
+        fechaInicio: String,
+        fechaFin: String,
+        direccionUso: String,
+        observaciones: String?,
+        cantidadEquipos: Int,
+        costoDia: Double,
+        diasReserva: Long
+    ): Long {
+        val db = writableDatabase
+
+        // Cliente temporal mientras se implementa login real
+        val idCliente = obtenerOCrearClienteTemporal()
+
+        // Código único para identificar la reserva
+        val codigoReserva = "RES-${System.currentTimeMillis()}"
+
+        var idReservaGenerada: Long = -1
+
+        db.beginTransaction()
+
+        try {
+            val valoresReserva = ContentValues().apply {
+                put("codigo_reserva", codigoReserva)
+                put("id_cliente", idCliente)
+                put("fecha_inicio", fechaInicio)
+                put("fecha_fin", fechaFin)
+                put("direccion_uso", direccionUso)
+                put("observaciones", observaciones)
+                put("estado_reserva", "PENDIENTE")
+                put("metodo_entrega", "RETIRO")
+                put("estado_pago", "PENDIENTE")
+            }
+
+            idReservaGenerada = db.insertOrThrow("reservas", null, valoresReserva)
+
+            /*
+ * En reserva_detalle, cantidad representa cuántos equipos se reservan.
+ * Los días se incluyen en la tarifa aplicada para calcular el total.
+ */
+            val tarifaTotalPorPeriodo = costoDia * diasReserva
+
+            val valoresDetalle = ContentValues().apply {
+                put("id_reserva", idReservaGenerada)
+                put("id_maquinaria", idMaquinaria)
+
+                // Cantidad real de equipos solicitados
+                put("cantidad", cantidadEquipos)
+
+                // Tarifa total del período seleccionado
+                put("tarifa_aplicada", tarifaTotalPorPeriodo)
+
+                put("modalidad_tarifa", "DIA")
+            }
+
+            db.insertOrThrow("reserva_detalle", null, valoresDetalle)
+
+            db.setTransactionSuccessful()
+
+        } catch (e: Exception) {
+            throw e
+        } finally {
+            db.endTransaction()
+        }
+
+        return idReservaGenerada
+    }
+
+    private fun obtenerOCrearClienteTemporal(): Int {
+        val db = writableDatabase
+
+        // Busca si ya existe un cliente temporal para pruebas
+        val cursor = db.rawQuery(
+            "SELECT id_cliente FROM clientes WHERE dui = ? LIMIT 1",
+            arrayOf("00000000-0")
+        )
+
+        cursor.use {
+            if (it.moveToFirst()) {
+                return it.getInt(0)
+            }
+        }
+
+        // Crea un cliente temporal mientras se implementa login real
+        val valores = ContentValues().apply {
+            put("nombres", "Cliente")
+            put("apellidos", "Temporal")
+            put("dui", "00000000-0")
+            put("nit", "")
+            put("telefono", "00000000")
+            put("correo", "cliente.temporal@demo.com")
+            put("direccion", "Direccion temporal")
+            put("activo", 1)
+        }
+
+        return db.insertOrThrow("clientes", null, valores).toInt()
+    }
+
+
+    fun obtenerHistorialReservas(): List<String> {
+        val db = readableDatabase
+        val historial = mutableListOf<String>()
+
+        // Consulta las reservas con su maquinaria y montos calculados
+        val cursor = db.rawQuery(
+            """
+        SELECT 
+            r.codigo_reserva,
+            r.fecha_inicio,
+            r.fecha_fin,
+            r.direccion_uso,
+            r.estado_reserva,
+            r.total_estimado,
+            m.nombre_equipo,
+            rd.cantidad,
+            rd.tarifa_aplicada,
+            rd.subtotal_detalle
+        FROM reservas r
+        INNER JOIN reserva_detalle rd 
+            ON rd.id_reserva = r.id_reserva
+        INNER JOIN maquinaria m 
+            ON m.id_maquinaria = rd.id_maquinaria
+        ORDER BY r.id_reserva DESC
+        """.trimIndent(),
+            null
+        )
+
+        cursor.use {
+            while (it.moveToNext()) {
+                val codigoReserva = it.getString(0)
+                val fechaInicio = it.getString(1)
+                val fechaFin = it.getString(2)
+                val direccionUso = it.getString(3)
+                val estadoReserva = it.getString(4)
+                val totalEstimado = it.getDouble(5)
+                val nombreEquipo = it.getString(6)
+                val cantidad = it.getInt(7)
+                val tarifaAplicada = it.getDouble(8)
+                val subtotalDetalle = it.getDouble(9)
+
+                val item = """
+                Código: $codigoReserva
+                Maquinaria: $nombreEquipo
+                Fechas: $fechaInicio al $fechaFin
+                Dirección: $direccionUso
+                Cantidad: $cantidad
+                Tarifa aplicada: $${String.format("%.2f", tarifaAplicada)}
+                Subtotal: $${String.format("%.2f", subtotalDetalle)}
+                Total estimado: $${String.format("%.2f", totalEstimado)}
+                Estado: $estadoReserva
+            """.trimIndent()
+
+                historial.add(item)
+            }
+        }
+
+        return historial
+    }
+
 }

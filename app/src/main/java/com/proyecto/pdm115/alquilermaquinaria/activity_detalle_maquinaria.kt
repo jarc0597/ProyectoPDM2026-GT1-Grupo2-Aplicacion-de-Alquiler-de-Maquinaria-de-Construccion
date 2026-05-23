@@ -11,6 +11,8 @@ import android.widget.Toast
 import com.proyecto.pdm115.alquilermaquinaria.db.DBHelper
 import android.widget.ImageView
 import android.widget.TextView
+import android.content.Intent
+import android.widget.Button
 
 class activity_detalle_maquinaria : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +51,19 @@ class activity_detalle_maquinaria : AppCompatActivity() {
             Toast.makeText(this, "No se encontró la maquinaria", Toast.LENGTH_LONG).show()
             Log.e("BD_SQLITE", "No se encontró maquinaria con ID: $idMaquinaria")
             return
+        }
+        // Botón para abrir la pantalla de reserva con la maquinaria seleccionada
+        val btnReservar = findViewById<Button>(R.id.btn_reservar)
+
+        btnReservar.setOnClickListener {
+            val intent = Intent(this, ReservaMaquinariaActivity::class.java)
+
+            // Enviamos datos básicos de la maquinaria a la pantalla de reserva
+            intent.putExtra("id_maquinaria", maquinaria.idMaquinaria)
+            intent.putExtra("nombre_maquinaria", maquinaria.nombreEquipo)
+            intent.putExtra("costo_dia", maquinaria.costoDia)
+
+            startActivity(intent)
         }
 
         // Referencias a los elementos visuales del XML

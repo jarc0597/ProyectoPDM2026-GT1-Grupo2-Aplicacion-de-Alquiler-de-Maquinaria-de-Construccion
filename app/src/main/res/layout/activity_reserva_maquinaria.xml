@@ -1,6 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FF"
+    android:padding="20dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_reserva_titulo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Reservar maquinaria"
+            android:textColor="#0B1C30"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/tv_reserva_maquinaria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Maquinaria seleccionada"
+            android:textColor="#334155"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/et_fecha_inicio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Fecha inicio (YYYY-MM-DD)"
+            android:inputType="date" />
+
+        <EditText
+            android:id="@+id/et_fecha_fin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Fecha fin (YYYY-MM-DD)"
+            android:inputType="date" />
+
+        <EditText
+            android:id="@+id/et_direccion_uso"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Dirección donde se usará la maquinaria" />
+
+        <EditText
+            android:id="@+id/et_observaciones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Observaciones"
+            android:minLines="3"
+            android:gravity="top" />
+
+        <EditText
+            android:id="@+id/et_cantidad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Cantidad"
+            android:inputType="number"
+            android:text="1" />
+
+        <TextView
+            android:id="@+id/tv_costo_estimado"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Costo estimado: $0.00"
+            android:textColor="#F97316"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btn_calcular_reserva"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Calcular costo" />
+
+        <Button
+            android:id="@+id/btn_guardar_reserva"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guardar reserva" />
+
+        <Button
+            android:id="@+id/btn_ver_historial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ver historial de reservas" />
+
+        <Button
+            android:id="@+id/btn_volver_reserva"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Volver" />
+
+    </LinearLayout>
+</ScrollView>
