@@ -174,14 +174,35 @@ class GestionMaquinariaActivity : AppCompatActivity() {
             return
         }
 
-        val filasEliminadas = dbHelper.eliminarMaquinaria(idMaquinaria.toInt())
+        val resultado = dbHelper.eliminarMaquinaria(idMaquinaria.toInt())
 
-        if (filasEliminadas > 0) {
-            Toast.makeText(this, "Maquinaria eliminada correctamente", Toast.LENGTH_LONG).show()
-            limpiarFormulario()
-            cargarSelectorMaquinarias()
-        } else {
-            Toast.makeText(this, "No se encontró la maquinaria a eliminar", Toast.LENGTH_LONG).show()
+        when {
+            resultado > 0 -> {
+                Toast.makeText(
+                    this,
+                    "Maquinaria eliminada correctamente",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                limpiarFormulario()
+                cargarSelectorMaquinarias()
+            }
+
+            resultado == -2 -> {
+                Toast.makeText(
+                    this,
+                    "No se puede eliminar. La maquinaria tiene reservas activas.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+            else -> {
+                Toast.makeText(
+                    this,
+                    "No se encontró la maquinaria a eliminar",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 

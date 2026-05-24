@@ -338,15 +338,42 @@ class DBHelper(context: Context) : SQLiteOpenHelper(
             arrayOf(idMaquinaria.toString())
         )
     }
+
     fun eliminarMaquinaria(idMaquinaria: Int): Int {
         val db = writableDatabase
 
-        // Eliminación lógica: no borra el registro, solo lo marca como inactivo
+        /*
+         * Antes de eliminar, validamos si la maquinaria tiene reservas activas.
+         * Si existe una reserva pendiente o vigente, no se permite eliminar.
+         */
+        val cursor = db.rawQuery(
+            """
+        SELECT COUNT(*)
+        FROM reserva_detalle rd
+        INNER JOIN reservas r
+            ON r.id_reserva = rd.id_reserva
+        WHERE rd.id_maquinaria = ?
+        AND UPPER(r.estado_reserva) NOT IN ('CANCELADA', 'FINALIZADA', 'RECHAZADA')
+        """.trimIndent(),
+            arrayOf(idMaquinaria.toString())
+        )
+
+        cursor.use {
+            if (it.moveToFirst()) {
+                val totalReservas = it.getInt(0)
+
+                if (totalReservas > 0) {
+                    // -2 significa que tiene reservas activas y no se puede eliminar
+                    return -2
+                }
+            }
+        }
+
+        // Eliminación lógica solo si no tiene reservas activas
         val valores = ContentValues().apply {
             put("activo", 0)
         }
 
-        // Retorna cuántos registros fueron marcados como inactivos
         return db.update(
             "maquinaria",
             valores,
