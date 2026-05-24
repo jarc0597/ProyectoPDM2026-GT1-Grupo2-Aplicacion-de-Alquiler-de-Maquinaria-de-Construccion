@@ -11,6 +11,12 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import com.proyecto.pdm115.alquilermaquinaria.models.Maquinaria
+import com.proyecto.pdm115.alquilermaquinaria.api.RetrofitClient
+import com.proyecto.pdm115.alquilermaquinaria.models.ApiResponseSimple
+import com.proyecto.pdm115.alquilermaquinaria.models.MaquinariaRequest
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class GestionMaquinariaActivity : AppCompatActivity() {
 
@@ -107,7 +113,8 @@ class GestionMaquinariaActivity : AppCompatActivity() {
     private fun guardarMaquinaria() {
         if (!validarCamposBasicos()) return
 
-        val resultado = dbHelper.insertarMaquinaria(
+        // Objeto que se guardará localmente y también se enviará a la API
+        val maquinariaRequest = MaquinariaRequest(
             codigoInterno = etCodigoInterno.text.toString().trim(),
             nombreEquipo = etNombreEquipo.text.toString().trim(),
             marca = etMarca.text.toString().trim(),
@@ -122,13 +129,85 @@ class GestionMaquinariaActivity : AppCompatActivity() {
             idEstado = etIdEstado.text.toString().toInt()
         )
 
+        // Primero se guarda en SQLite local
+        val resultado = dbHelper.insertarMaquinaria(
+            codigoInterno = maquinariaRequest.codigoInterno,
+            nombreEquipo = maquinariaRequest.nombreEquipo,
+            marca = maquinariaRequest.marca,
+            modelo = maquinariaRequest.modelo,
+            capacidad = maquinariaRequest.capacidad,
+            descripcion = maquinariaRequest.descripcion,
+            costoHora = maquinariaRequest.costoHora,
+            costoDia = maquinariaRequest.costoDia,
+            stock = maquinariaRequest.stock,
+            imagenUrl = maquinariaRequest.imagenUrl,
+            idCategoria = maquinariaRequest.idCategoria,
+            idEstado = maquinariaRequest.idEstado
+        )
+
         if (resultado > 0) {
-            Toast.makeText(this, "Maquinaria guardada correctamente. ID: $resultado", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "Maquinaria guardada localmente. Enviando a MySQL...",
+                Toast.LENGTH_LONG
+            ).show()
+
+            // Luego se envía a MySQL mediante la API
+            enviarMaquinariaApi(maquinariaRequest)
+
             limpiarFormulario()
             cargarSelectorMaquinarias()
         } else {
-            Toast.makeText(this, "No se pudo guardar la maquinaria", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "No se pudo guardar la maquinaria",
+                Toast.LENGTH_LONG
+            ).show()
         }
+    }
+
+    private fun enviarMaquinariaApi(maquinariaRequest: MaquinariaRequest) {
+        RetrofitClient.apiService.insertarMaquinariaRemota(maquinariaRequest)
+            .enqueue(object : Callback<ApiResponseSimple> {
+
+                override fun onResponse(
+                    call: Call<ApiResponseSimple>,
+                    response: Response<ApiResponseSimple>
+                ) {
+                    if (!response.isSuccessful) {
+                        Toast.makeText(
+                            this@GestionMaquinariaActivity,
+                            "Guardada localmente, pero API devolvió error HTTP: ${response.code()}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return
+                    }
+
+                    val respuesta = response.body()
+
+                    if (respuesta != null && respuesta.ok) {
+                        Toast.makeText(
+                            this@GestionMaquinariaActivity,
+                            "Maquinaria enviada a MySQL correctamente",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            this@GestionMaquinariaActivity,
+                            "Guardada localmente, pero la API no confirmó inserción",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponseSimple>, t: Throwable) {
+                    Toast.makeText(
+                        this@GestionMaquinariaActivity,
+                        "Guardada localmente, pero no se pudo conectar con API: ${t.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            })
     }
 
     private fun actualizarMaquinaria() {
